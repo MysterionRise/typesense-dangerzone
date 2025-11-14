@@ -1,0 +1,113 @@
+# Data Generation Configuration for Acme Outfitters
+
+categories:
+  - Shoes
+  - Apparel
+  - Outdoors
+  - Electronics
+  - Home
+
+shoe_brands:
+  - Nike
+  - Adidas
+  - Brooks
+  - Salomon
+  - Hoka
+  - New Balance
+  - Asics
+  - Merrell
+  - Altra
+  - On Running
+
+apparel_brands:
+  - Patagonia
+  - The North Face
+  - Columbia
+  - Arc'teryx
+  - REI Co-op
+  - prAna
+  - Mountain Hardwear
+  - Outdoor Research
+  - Smartwool
+  - Icebreaker
+
+electronics_brands:
+  - Samsung
+  - Apple
+  - Sony
+  - LG
+  - Garmin
+  - GoPro
+  - Bose
+  - JBL
+  - Anker
+  - Fitbit
+
+home_brands:
+  - Yeti
+  - Stanley
+  - Coleman
+  - Black Diamond
+  - MSR
+  - Sea to Summit
+  - Therm-a-Rest
+  - Big Agnes
+  - GSI Outdoors
+  - Hydro Flask
+
+# City coordinates for store locations (lat, lng)
+cities:
+  - name: Seattle
+    lat: 47.6062
+    lng: -122.3321
+  - name: Denver
+    lat: 39.7392
+    lng: -104.9903
+  - name: Portland
+    lat: 45.5152
+    lng: -122.6784
+  - name: Austin
+    lat: 30.2672
+    lng: -97.7431
+  - name: Boston
+    lat: 42.3601
+    lng: -71.0589
+  - name: San Francisco
+    lat: 37.7749
+    lng: -122.4194
+
+colors:
+  - Black
+  - White
+  - Blue
+  - Red
+  - Green
+  - Gray
+  - Navy
+  - Tan
+  - Brown
+  - Orange
+  - Purple
+  - Yellow
+
+tags:
+  - waterproof
+  - breathable
+  - lightweight
+  - durable
+  - eco-friendly
+  - bestseller
+  - new-arrival
+  - sale
+  - limited-edition
+  - trail-running
+  - hiking
+  - camping
+  - fitness
+  - casual
+  - professional
+  - travel
+  - outdoor
+  - indoor
+  - wireless
+  - rechargeable

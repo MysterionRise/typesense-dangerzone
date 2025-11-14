@@ -1,0 +1,265 @@
+###
+# Typesense Hybrid Search Demo - Sample Queries
+# Use with VS Code REST Client extension or similar
+###
+
+@baseUrl = http://localhost:8108
+@apiKey = xyz123_demo_key_change_in_production
+@collection = products
+
+###
+# 1. Basic Keyword Search
+POST {{baseUrl}}/collections/{{collection}}/documents/search
+X-TYPESENSE-API-KEY: {{apiKey}}
+Content-Type: application/json
+
+{
+  "q": "trail running shoes",
+  "query_by": "title,description",
+  "per_page": 10
+}
+
+###
+# 2. Hybrid Search (Keyword + Semantic)
+# Alpha 0.3 = 30% semantic, 70% keyword
+POST {{baseUrl}}/collections/{{collection}}/documents/search
+X-TYPESENSE-API-KEY: {{apiKey}}
+Content-Type: application/json
+
+{
+  "q": "lightweight trail running shoes",
+  "query_by": "title,description,embedding",
+  "vector_query": "embedding:([], alpha: 0.3)",
+  "per_page": 10
+}
+
+###
+# 3. Semantic-Focused Search (Higher Alpha)
+# Alpha 0.7 = 70% semantic, 30% keyword
+POST {{baseUrl}}/collections/{{collection}}/documents/search
+X-TYPESENSE-API-KEY: {{apiKey}}
+Content-Type: application/json
+
+{
+  "q": "gear for mountain adventures",
+  "query_by": "title,description,embedding",
+  "vector_query": "embedding:([], alpha: 0.7, distance_threshold: 0.35)",
+  "per_page": 10
+}
+
+###
+# 4. Hybrid Search with Facets and Filters
+POST {{baseUrl}}/collections/{{collection}}/documents/search
+X-TYPESENSE-API-KEY: {{apiKey}}
+Content-Type: application/json
+
+{
+  "q": "jacket",
+  "query_by": "title,description,embedding",
+  "vector_query": "embedding:([], alpha: 0.4)",
+  "facet_by": "brand,categories,tags,price(economy:[0,50],mid:[50,150],premium:[150,])",
+  "filter_by": "available:=true && price:[50..200]",
+  "sort_by": "_text_match:desc",
+  "per_page": 20
+}
+
+###
+# 5. Geo-Radius Search (Products Near Seattle)
+POST {{baseUrl}}/collections/{{collection}}/documents/search
+X-TYPESENSE-API-KEY: {{apiKey}}
+Content-Type: application/json
+
+{
+  "q": "*",
+  "query_by": "title",
+  "filter_by": "location:(47.6062, -122.3321, 50 km)",
+  "sort_by": "location(47.6062, -122.3321):asc",
+  "per_page": 20
+}
+
+###
+# 6. Geo + Hybrid Search
+POST {{baseUrl}}/collections/{{collection}}/documents/search
+X-TYPESENSE-API-KEY: {{apiKey}}
+Content-Type: application/json
+
+{
+  "q": "camping gear near me",
+  "query_by": "title,description,embedding",
+  "vector_query": "embedding:([], alpha: 0.35)",
+  "filter_by": "location:(39.7392, -104.9903, 25 km) && available:=true",
+  "sort_by": "_text_match:desc,location(39.7392, -104.9903):asc",
+  "per_page": 20
+}
+
+###
+# 7. Curated Query (Override Demo - Trail Running)
+# This triggers the override that pins hero products
+POST {{baseUrl}}/collections/{{collection}}/documents/search
+X-TYPESENSE-API-KEY: {{apiKey}}
+Content-Type: application/json
+
+{
+  "q": "trail running",
+  "query_by": "title,description,embedding",
+  "vector_query": "embedding:([], alpha: 0.3)",
+  "per_page": 20
+}
+
+###
+# 8. Brand Filter Override (Nike)
+# This triggers override that filters by brand and removes "nike" from query
+POST {{baseUrl}}/collections/{{collection}}/documents/search
+X-TYPESENSE-API-KEY: {{apiKey}}
+Content-Type: application/json
+
+{
+  "q": "nike running shoes",
+  "query_by": "title,description,embedding",
+  "vector_query": "embedding:([], alpha: 0.3)",
+  "per_page": 20
+}
+
+###
+# 9. Synonym Demo (Sneaker → Shoe, Trainer)
+POST {{baseUrl}}/collections/{{collection}}/documents/search
+X-TYPESENSE-API-KEY: {{apiKey}}
+Content-Type: application/json
+
+{
+  "q": "sneaker",
+  "query_by": "title,description",
+  "per_page": 10
+}
+
+###
+# 10. Multi-Search (Federated Search - Products + Brands)
+POST {{baseUrl}}/multi_search
+X-TYPESENSE-API-KEY: {{apiKey}}
+Content-Type: application/json
+
+{
+  "searches": [
+    {
+      "collection": "products",
+      "q": "patagonia",
+      "query_by": "title,description,embedding",
+      "vector_query": "embedding:([], alpha: 0.3)",
+      "per_page": 10
+    },
+    {
+      "collection": "brands",
+      "q": "patagonia",
+      "query_by": "name,description,embedding",
+      "vector_query": "embedding:([], alpha: 0.5)",
+      "per_page": 5
+    }
+  ]
+}
+
+###
+# 11. Query Suggestions (Autocomplete)
+GET {{baseUrl}}/collections/product_suggestions/documents/search?q=trai&query_by=q&prefix=true&per_page=10
+X-TYPESENSE-API-KEY: {{apiKey}}
+
+###
+# 12. Vector Distance Sorting (Pure Semantic)
+POST {{baseUrl}}/collections/{{collection}}/documents/search
+X-TYPESENSE-API-KEY: {{apiKey}}
+Content-Type: application/json
+
+{
+  "q": "sustainable outdoor clothing",
+  "query_by": "embedding",
+  "vector_query": "embedding:([], alpha: 1.0)",
+  "sort_by": "_vector_distance:asc",
+  "per_page": 20
+}
+
+###
+# 13. Conversational Query (drop_tokens_threshold)
+POST {{baseUrl}}/collections/{{collection}}/documents/search
+X-TYPESENSE-API-KEY: {{apiKey}}
+Content-Type: application/json
+
+{
+  "q": "I need a waterproof jacket for hiking in the rain",
+  "query_by": "title,description,embedding",
+  "vector_query": "embedding:([], alpha: 0.5)",
+  "drop_tokens_threshold": 0,
+  "per_page": 20
+}
+
+###
+# 14. Typo Tolerance Test
+POST {{baseUrl}}/collections/{{collection}}/documents/search
+X-TYPESENSE-API-KEY: {{apiKey}}
+Content-Type: application/json
+
+{
+  "q": "nike runng sheos",
+  "query_by": "title,description",
+  "num_typos": 2,
+  "per_page": 10
+}
+
+###
+# 15. Search Preset (A/B Test Version 1)
+POST {{baseUrl}}/collections/{{collection}}/documents/search
+X-TYPESENSE-API-KEY: {{apiKey}}
+Content-Type: application/json
+
+{
+  "q": "hiking",
+  "preset": "listing_view_v1",
+  "per_page": 20
+}
+
+###
+# 16. Search Preset (A/B Test Version 2)
+POST {{baseUrl}}/collections/{{collection}}/documents/search
+X-TYPESENSE-API-KEY: {{apiKey}}
+Content-Type: application/json
+
+{
+  "q": "hiking",
+  "preset": "listing_view_v2",
+  "per_page": 20
+}
+
+###
+# 17. Analytics Event (Track Search with User ID)
+POST {{baseUrl}}/collections/{{collection}}/documents/search
+X-TYPESENSE-API-KEY: {{apiKey}}
+X-TYPESENSE-USER-ID: demo-user-123
+Content-Type: application/json
+
+{
+  "q": "camping tent",
+  "query_by": "title,description,embedding",
+  "vector_query": "embedding:([], alpha: 0.3)",
+  "per_page": 20
+}
+
+###
+# 18. Scoped API Key Test (Categories Filter)
+# Note: Replace with actual scoped key generated by backend
+POST {{baseUrl}}/collections/{{collection}}/documents/search
+X-TYPESENSE-API-KEY: {{apiKey}}
+Content-Type: application/json
+
+{
+  "q": "*",
+  "query_by": "title",
+  "filter_by": "categories:=Apparel",
+  "per_page": 20
+}
+
+###
+# 19. Collection Info
+GET {{baseUrl}}/collections/{{collection}}
+X-TYPESENSE-API-KEY: {{apiKey}}
+
+###
+# 20. Health Check
+GET {{baseUrl}}/health

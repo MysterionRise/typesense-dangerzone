@@ -6,8 +6,12 @@ These tests require a running Typesense instance
 
 import pytest
 import os
+import sys
 import json
-from unittest.mock import MagicMock, patch
+from unittest.mock import MagicMock, patch, mock_open
+
+# Add parent directory to path
+sys.path.insert(0, os.path.dirname(os.path.dirname(os.path.abspath(__file__))))
 
 
 @pytest.fixture
@@ -221,9 +225,8 @@ class TestDataGeneration:
 
     def test_product_json_is_valid(self):
         """Test that generated product JSON is valid"""
-        from synth_data import generate_product
-
-        with patch('synth_data.config', {
+        # Mock config loading
+        test_config = {
             'categories': ['Shoes'],
             'shoe_brands': ['Nike'],
             'apparel_brands': ['Patagonia'],
@@ -232,16 +235,22 @@ class TestDataGeneration:
             'colors': ['Black'],
             'tags': ['waterproof', 'lightweight'],
             'cities': [{'name': 'Seattle', 'lat': 47.6062, 'lng': -122.3321}]
-        }):
-            product = generate_product(1)
+        }
 
-            # Should be JSON serializable
-            json_str = json.dumps(product)
-            assert len(json_str) > 0
+        with patch('builtins.open', mock_open()):
+            with patch('yaml.safe_load', return_value=test_config):
+                from synth_data import generate_product
+                import synth_data
+                synth_data.config = test_config
+                product = generate_product(1)
 
-            # Should be deserializable
-            parsed = json.loads(json_str)
-            assert parsed['id'] == '1'
+                # Should be JSON serializable
+                json_str = json.dumps(product)
+                assert len(json_str) > 0
+
+                # Should be deserializable
+                parsed = json.loads(json_str)
+                assert parsed['id'] == '1'
 
 
 if __name__ == '__main__':

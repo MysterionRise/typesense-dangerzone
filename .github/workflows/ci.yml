@@ -48,16 +48,17 @@ jobs:
         continue-on-error: true
 
       - name: Run backend tests
+        working-directory: backend
         run: |
-          cd backend
           pytest tests/ -v --cov=. --cov-report=xml --cov-report=term
 
       - name: Upload coverage to Codecov
         uses: codecov/codecov-action@v3
         with:
-          files: ./backend/coverage.xml
+          files: backend/coverage.xml
           flags: backend
           name: backend-coverage
+        continue-on-error: true
 
   frontend-tests:
     name: Frontend Tests

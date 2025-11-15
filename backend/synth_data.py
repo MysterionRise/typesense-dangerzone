@@ -15,7 +15,7 @@ import yaml
 NUM_PRODUCTS = int(os.getenv('NUM_PRODUCTS', 30000))
 NUM_BRANDS = int(os.getenv('NUM_BRANDS', 500))
 RANDOM_SEED = int(os.getenv('RANDOM_SEED', 42))
-OUTPUT_DIR = '/data'
+OUTPUT_DIR = os.getenv('OUTPUT_DIR', '/data')
 
 # Initialize Faker with seed for reproducibility
 fake = Faker()
@@ -23,8 +23,21 @@ Faker.seed(RANDOM_SEED)
 random.seed(RANDOM_SEED)
 
 # Load configuration
-with open('/app/seed_config.yml', 'r') as f:
-    config = yaml.safe_load(f)
+# Support both Docker path and local development
+CONFIG_PATHS = [
+    '/app/seed_config.yml',  # Docker path
+    os.path.join(os.path.dirname(__file__), 'seed_config.yml'),  # Local path
+]
+
+config = None
+for config_path in CONFIG_PATHS:
+    if os.path.exists(config_path):
+        with open(config_path, 'r') as f:
+            config = yaml.safe_load(f)
+        break
+
+if config is None:
+    raise FileNotFoundError(f"Could not find seed_config.yml in any of: {CONFIG_PATHS}")
 
 
 def generate_product_title(category: str, brand: str) -> str:

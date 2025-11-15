@@ -48,7 +48,7 @@ test: test-backend test-frontend test-integration
 # Backend tests
 test-backend:
 	@echo "🧪 Running backend tests..."
-	cd backend && python -m pytest tests/ -v --cov=. --cov-report=term
+	cd backend && python -m pytest tests/ -v
 
 # Frontend tests
 test-frontend:

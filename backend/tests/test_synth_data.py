@@ -11,13 +11,35 @@ from unittest.mock import patch, mock_open, MagicMock
 # Add parent directory to path
 sys.path.insert(0, os.path.dirname(os.path.dirname(os.path.abspath(__file__))))
 
-from synth_data import (
-    generate_product_title,
-    generate_description,
-    get_brand_for_category,
-    generate_product,
-    generate_brand,
-)
+# Mock config before importing synth_data
+TEST_CONFIG = {
+    'categories': ['Shoes', 'Apparel', 'Outdoors', 'Electronics', 'Home'],
+    'shoe_brands': ['Nike', 'Adidas', 'Brooks'],
+    'apparel_brands': ['Patagonia', 'The North Face', 'Columbia'],
+    'electronics_brands': ['Samsung', 'Apple', 'Sony'],
+    'home_brands': ['Yeti', 'Stanley', 'Coleman'],
+    'colors': ['Black', 'White', 'Blue', 'Red'],
+    'tags': ['waterproof', 'breathable', 'lightweight'],
+    'cities': [
+        {'name': 'Seattle', 'lat': 47.6062, 'lng': -122.3321},
+        {'name': 'Denver', 'lat': 39.7392, 'lng': -104.9903},
+    ]
+}
+
+# Mock the config loading
+with patch('builtins.open', mock_open()):
+    with patch('yaml.safe_load', return_value=TEST_CONFIG):
+        from synth_data import (
+            generate_product_title,
+            generate_description,
+            get_brand_for_category,
+            generate_product,
+            generate_brand,
+        )
+
+# Replace the actual config with our test config
+import synth_data
+synth_data.config = TEST_CONFIG
 
 
 class TestProductTitleGeneration:
@@ -61,36 +83,18 @@ class TestDescriptionGeneration:
 class TestBrandSelection:
     """Test brand selection for categories"""
 
-    @patch('synth_data.config', {
-        'shoe_brands': ['Nike', 'Adidas'],
-        'apparel_brands': ['Patagonia', 'North Face'],
-        'electronics_brands': ['Samsung', 'Apple'],
-        'home_brands': ['Yeti', 'Stanley']
-    })
     def test_returns_appropriate_brand_for_category(self):
         """Test that appropriate brands are returned for categories"""
         shoe_brand = get_brand_for_category('Shoes')
-        assert shoe_brand in ['Nike', 'Adidas']
+        assert shoe_brand in TEST_CONFIG['shoe_brands']
 
         apparel_brand = get_brand_for_category('Apparel')
-        assert apparel_brand in ['Patagonia', 'North Face']
+        assert apparel_brand in TEST_CONFIG['apparel_brands']
 
 
 class TestProductGeneration:
     """Test full product generation"""
 
-    @patch('synth_data.config', {
-        'categories': ['Shoes', 'Apparel'],
-        'shoe_brands': ['Nike'],
-        'apparel_brands': ['Patagonia'],
-        'electronics_brands': ['Samsung'],
-        'home_brands': ['Yeti'],
-        'colors': ['Black', 'White'],
-        'tags': ['waterproof', 'lightweight'],
-        'cities': [
-            {'name': 'Seattle', 'lat': 47.6062, 'lng': -122.3321}
-        ]
-    })
     def test_generates_valid_product(self):
         """Test that a valid product document is generated"""
         product = generate_product(1)
@@ -115,18 +119,6 @@ class TestProductGeneration:
         assert isinstance(product['location'], list)
         assert len(product['location']) == 2  # [lat, lng]
 
-    @patch('synth_data.config', {
-        'categories': ['Shoes'],
-        'shoe_brands': ['Nike'],
-        'apparel_brands': ['Patagonia'],
-        'electronics_brands': ['Samsung'],
-        'home_brands': ['Yeti'],
-        'colors': ['Black'],
-        'tags': ['waterproof', 'lightweight', 'durable'],
-        'cities': [
-            {'name': 'Seattle', 'lat': 47.6062, 'lng': -122.3321}
-        ]
-    })
     def test_product_has_valid_geo_coordinates(self):
         """Test that product location is valid"""
         product = generate_product(42)
@@ -163,18 +155,6 @@ class TestBrandGeneration:
 class TestDataConsistency:
     """Test data consistency and validity"""
 
-    @patch('synth_data.config', {
-        'categories': ['Shoes'],
-        'shoe_brands': ['Nike'],
-        'apparel_brands': ['Patagonia'],
-        'electronics_brands': ['Samsung'],
-        'home_brands': ['Yeti'],
-        'colors': ['Black'],
-        'tags': ['waterproof', 'lightweight'],
-        'cities': [
-            {'name': 'Seattle', 'lat': 47.6062, 'lng': -122.3321}
-        ]
-    })
     def test_products_have_consistent_schema(self):
         """Test that all products have consistent schema"""
         products = [generate_product(i) for i in range(10)]
@@ -184,19 +164,6 @@ class TestDataConsistency:
         for product in products[1:]:
             assert set(product.keys()) == keys
 
-    @patch('synth_data.RANDOM_SEED', 42)
-    @patch('synth_data.config', {
-        'categories': ['Shoes'],
-        'shoe_brands': ['Nike'],
-        'apparel_brands': ['Patagonia'],
-        'electronics_brands': ['Samsung'],
-        'home_brands': ['Yeti'],
-        'colors': ['Black'],
-        'tags': ['waterproof', 'lightweight'],
-        'cities': [
-            {'name': 'Seattle', 'lat': 47.6062, 'lng': -122.3321}
-        ]
-    })
     def test_seeded_random_produces_deterministic_results(self):
         """Test that random seed produces consistent results"""
         import random

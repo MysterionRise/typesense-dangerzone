@@ -1,0 +1,246 @@
+name: CI
+
+on:
+  push:
+    branches: [ main, 'claude/**' ]
+  pull_request:
+    branches: [ main ]
+
+jobs:
+  backend-tests:
+    name: Backend Tests
+    runs-on: ubuntu-latest
+
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Set up Python 3.11
+        uses: actions/setup-python@v4
+        with:
+          python-version: '3.11'
+
+      - name: Cache Python dependencies
+        uses: actions/cache@v3
+        with:
+          path: ~/.cache/pip
+          key: ${{ runner.os }}-pip-${{ hashFiles('backend/requirements.txt') }}
+          restore-keys: |
+            ${{ runner.os }}-pip-
+
+      - name: Install dependencies
+        run: |
+          python -m pip install --upgrade pip
+          pip install -r backend/requirements.txt
+          pip install pytest pytest-cov pytest-mock pyyaml
+
+      - name: Lint with flake8
+        run: |
+          pip install flake8
+          # Stop build if there are Python syntax errors or undefined names
+          flake8 backend --count --select=E9,F63,F7,F82 --show-source --statistics
+          # Exit-zero treats all errors as warnings
+          flake8 backend --count --exit-zero --max-complexity=10 --max-line-length=120 --statistics
+
+      - name: Type check with mypy
+        run: |
+          pip install mypy types-PyYAML types-requests
+          mypy backend --ignore-missing-imports --no-strict-optional
+        continue-on-error: true
+
+      - name: Run backend tests
+        run: |
+          cd backend
+          pytest tests/ -v --cov=. --cov-report=xml --cov-report=term
+
+      - name: Upload coverage to Codecov
+        uses: codecov/codecov-action@v3
+        with:
+          files: ./backend/coverage.xml
+          flags: backend
+          name: backend-coverage
+
+  frontend-tests:
+    name: Frontend Tests
+    runs-on: ubuntu-latest
+
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Set up Node.js
+        uses: actions/setup-node@v4
+        with:
+          node-version: '20'
+          cache: 'npm'
+          cache-dependency-path: ui/package.json
+
+      - name: Install dependencies
+        working-directory: ui
+        run: npm ci
+
+      - name: Lint with ESLint
+        working-directory: ui
+        run: npm run lint
+        continue-on-error: true
+
+      - name: Type check
+        working-directory: ui
+        run: npx tsc --noEmit
+
+      - name: Run tests
+        working-directory: ui
+        run: npm test -- --coverage --passWithNoTests
+
+      - name: Build
+        working-directory: ui
+        run: npm run build
+
+  integration-tests:
+    name: Integration Tests
+    runs-on: ubuntu-latest
+
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Create .env file
+        run: cp .env.example .env
+
+      - name: Start services
+        run: |
+          docker compose up -d typesense
+          # Wait for Typesense to be healthy
+          timeout 60 bash -c 'until curl -f http://localhost:8108/health; do sleep 2; done'
+
+      - name: Run data generation test
+        run: |
+          docker compose run --rm backend python /app/synth_data.py
+          # Check if data files were created
+          test -f data/products.ndjson
+          test -f data/brands.ndjson
+          # Verify data has content
+          lines=$(wc -l < data/products.ndjson)
+          echo "Generated $lines products"
+          [ "$lines" -gt 1000 ] || exit 1
+
+      - name: Run indexing test
+        run: |
+          docker compose run --rm backend python /app/index_products.py
+          docker compose run --rm backend python /app/index_brands.py
+
+      - name: Verify collections exist
+        run: |
+          # Check products collection
+          curl -H "X-TYPESENSE-API-KEY: xyz123_demo_key_change_in_production" \
+            http://localhost:8108/collections/products | grep -q "products"
+
+          # Check brands collection
+          curl -H "X-TYPESENSE-API-KEY: xyz123_demo_key_change_in_production" \
+            http://localhost:8108/collections/brands | grep -q "brands"
+
+      - name: Test search queries
+        run: |
+          # Test basic search
+          curl -X POST -H "X-TYPESENSE-API-KEY: xyz123_demo_key_change_in_production" \
+            -H "Content-Type: application/json" \
+            -d '{"q":"shoes","query_by":"title"}' \
+            http://localhost:8108/collections/products/documents/search \
+            | grep -q "found"
+
+          # Test hybrid search
+          curl -X POST -H "X-TYPESENSE-API-KEY: xyz123_demo_key_change_in_production" \
+            -H "Content-Type: application/json" \
+            -d '{"q":"running","query_by":"title,description,embedding","vector_query":"embedding:([], alpha: 0.3)"}' \
+            http://localhost:8108/collections/products/documents/search \
+            | grep -q "found"
+
+      - name: Show logs on failure
+        if: failure()
+        run: |
+          docker compose logs typesense
+          docker compose logs backend
+
+      - name: Cleanup
+        if: always()
+        run: docker compose down -v
+
+  docker-build:
+    name: Docker Build Test
+    runs-on: ubuntu-latest
+
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Set up Docker Buildx
+        uses: docker/setup-buildx-action@v3
+
+      - name: Build backend image
+        uses: docker/build-push-action@v5
+        with:
+          context: ./backend
+          push: false
+          cache-from: type=gha
+          cache-to: type=gha,mode=max
+
+      - name: Build UI image
+        uses: docker/build-push-action@v5
+        with:
+          context: ./ui
+          push: false
+          cache-from: type=gha
+          cache-to: type=gha,mode=max
+
+  smoke-test:
+    name: Full Stack Smoke Test
+    runs-on: ubuntu-latest
+    timeout-minutes: 20
+
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Create .env file
+        run: cp .env.example .env
+
+      - name: Start full stack
+        run: docker compose up -d
+
+      - name: Wait for services
+        run: |
+          echo "Waiting for Typesense..."
+          timeout 60 bash -c 'until curl -f http://localhost:8108/health; do sleep 2; done'
+
+          echo "Waiting for backend to complete..."
+          timeout 300 bash -c 'until docker compose ps | grep -q "typesense-seeder.*exited.*0"; do sleep 5; done'
+
+          echo "Waiting for UI..."
+          timeout 120 bash -c 'until curl -f http://localhost:3000; do sleep 5; done'
+
+      - name: Test UI accessibility
+        run: |
+          response=$(curl -s -o /dev/null -w "%{http_code}" http://localhost:3000)
+          echo "UI response code: $response"
+          [ "$response" = "200" ] || exit 1
+
+      - name: Test search API
+        run: |
+          # Test that we can search
+          result=$(curl -s -X POST \
+            -H "X-TYPESENSE-API-KEY: xyz123_demo_key_change_in_production" \
+            -H "Content-Type: application/json" \
+            -d '{"q":"*","query_by":"title","per_page":1}' \
+            http://localhost:8108/collections/products/documents/search)
+
+          echo "$result" | grep -q "found"
+          echo "Search test passed!"
+
+      - name: Show logs on failure
+        if: failure()
+        run: |
+          echo "=== Typesense logs ==="
+          docker compose logs typesense
+          echo "=== Backend logs ==="
+          docker compose logs backend
+          echo "=== UI logs ==="
+          docker compose logs ui
+
+      - name: Cleanup
+        if: always()
+        run: docker compose down -v

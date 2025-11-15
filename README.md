@@ -1,5 +1,8 @@
 # 🏔️ Typesense Hybrid Search Demo - Acme Outfitters
 
+![CI Status](https://github.com/MysterionRise/typesense-dangerzone/workflows/CI/badge.svg)
+[![License: MIT](https://img.shields.io/badge/License-MIT-yellow.svg)](https://opensource.org/licenses/MIT)
+
 A comprehensive demonstration of **Typesense's hybrid search** capabilities combining keyword relevance with semantic search using auto-embedding. This full-stack demo showcases an e-commerce discovery experience with 30k synthetic products across multiple categories.
 
 ## ✨ Features Demonstrated
@@ -430,6 +433,106 @@ Use VS Code REST Client extension:
 - Multi-search
 - Query suggestions
 - Scoped API key demo
+
+## 🧪 Testing
+
+This repository includes comprehensive tests to ensure everything works correctly.
+
+### Running All Tests
+
+```bash
+# Using Make
+make test
+
+# Or manually
+make test-backend      # Backend Python tests
+make test-frontend     # Frontend React tests
+make test-integration  # Full stack integration tests
+```
+
+### Backend Tests
+
+Backend tests use **pytest** and cover:
+- Data generation functions
+- Schema validation
+- Synonym and override configuration
+- Integration with Typesense
+
+```bash
+cd backend
+pytest tests/ -v --cov=. --cov-report=term
+```
+
+**Test Coverage:**
+- `test_synth_data.py` - Synthetic data generation
+- `test_integration.py` - Typesense integration
+
+### Frontend Tests
+
+Frontend tests use **Jest** and **React Testing Library**:
+
+```bash
+cd ui
+npm test
+```
+
+**Test Coverage:**
+- Component rendering and interactions
+- API utility functions
+- TypeScript type checking
+
+### Integration Tests
+
+Integration tests verify the full stack works together:
+
+```bash
+make test-integration
+```
+
+**What's Tested:**
+- Typesense starts successfully
+- Data generation creates valid NDJSON
+- Collections are created with correct schemas
+- Indexing completes without errors
+- Search queries return results
+- Hybrid search with embeddings works
+
+### Continuous Integration
+
+GitHub Actions CI runs automatically on push/PR:
+
+**CI Pipeline:**
+1. **Backend Tests** - pytest with coverage
+2. **Frontend Tests** - Jest tests
+3. **Integration Tests** - Full stack smoke test
+4. **Docker Build** - Verify images build correctly
+5. **Linting** - flake8 (Python) and ESLint (TypeScript)
+6. **Type Checking** - mypy (Python) and tsc (TypeScript)
+
+See [`.github/workflows/ci.yml`](.github/workflows/ci.yml) for details.
+
+### Linting
+
+```bash
+# All linters
+make lint
+
+# Backend only
+cd backend && flake8 . --max-line-length=120
+
+# Frontend only
+cd ui && npm run lint
+```
+
+### Type Checking
+
+```bash
+# Backend
+cd backend && mypy . --ignore-missing-imports
+
+# Frontend
+cd ui && npm run type-check
+```
 
 ## 🐛 Troubleshooting
 

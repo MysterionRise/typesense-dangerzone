@@ -12,17 +12,21 @@ from unittest.mock import patch, mock_open, MagicMock
 sys.path.insert(0, os.path.dirname(os.path.dirname(os.path.abspath(__file__))))
 
 # Mock config before importing synth_data
+# Ensure we have enough items for random.sample() calls
 TEST_CONFIG = {
     'categories': ['Shoes', 'Apparel', 'Outdoors', 'Electronics', 'Home'],
-    'shoe_brands': ['Nike', 'Adidas', 'Brooks'],
-    'apparel_brands': ['Patagonia', 'The North Face', 'Columbia'],
-    'electronics_brands': ['Samsung', 'Apple', 'Sony'],
-    'home_brands': ['Yeti', 'Stanley', 'Coleman'],
-    'colors': ['Black', 'White', 'Blue', 'Red'],
-    'tags': ['waterproof', 'breathable', 'lightweight'],
+    'shoe_brands': ['Nike', 'Adidas', 'Brooks', 'Salomon', 'Hoka', 'New Balance'],
+    'apparel_brands': ['Patagonia', 'The North Face', 'Columbia', 'Arc\'teryx', 'REI Co-op', 'prAna'],
+    'electronics_brands': ['Samsung', 'Apple', 'Sony', 'LG', 'Garmin', 'GoPro'],
+    'home_brands': ['Yeti', 'Stanley', 'Coleman', 'Black Diamond', 'MSR', 'Sea to Summit'],
+    'colors': ['Black', 'White', 'Blue', 'Red', 'Green', 'Gray', 'Navy', 'Tan'],
+    'tags': ['waterproof', 'breathable', 'lightweight', 'durable', 'eco-friendly',
+             'bestseller', 'new-arrival', 'sale', 'limited-edition', 'trail-running'],
     'cities': [
         {'name': 'Seattle', 'lat': 47.6062, 'lng': -122.3321},
         {'name': 'Denver', 'lat': 39.7392, 'lng': -104.9903},
+        {'name': 'Portland', 'lat': 45.5152, 'lng': -122.6784},
+        {'name': 'Austin', 'lat': 30.2672, 'lng': -97.7431},
     ]
 }
 

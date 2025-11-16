@@ -76,7 +76,7 @@ jobs:
 
       - name: Install dependencies
         working-directory: ui
-        run: npm ci
+        run: npm install
 
       - name: Lint with ESLint
         working-directory: ui

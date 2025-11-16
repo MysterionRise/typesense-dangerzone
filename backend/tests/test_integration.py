@@ -225,16 +225,19 @@ class TestDataGeneration:
 
     def test_product_json_is_valid(self):
         """Test that generated product JSON is valid"""
-        # Mock config loading
+        # Mock config loading - ensure enough items for random.sample()
         test_config = {
-            'categories': ['Shoes'],
-            'shoe_brands': ['Nike'],
-            'apparel_brands': ['Patagonia'],
-            'electronics_brands': ['Samsung'],
-            'home_brands': ['Yeti'],
-            'colors': ['Black'],
-            'tags': ['waterproof', 'lightweight'],
-            'cities': [{'name': 'Seattle', 'lat': 47.6062, 'lng': -122.3321}]
+            'categories': ['Shoes', 'Apparel', 'Outdoors'],
+            'shoe_brands': ['Nike', 'Adidas', 'Brooks'],
+            'apparel_brands': ['Patagonia', 'The North Face', 'Columbia'],
+            'electronics_brands': ['Samsung', 'Apple', 'Sony'],
+            'home_brands': ['Yeti', 'Stanley', 'Coleman'],
+            'colors': ['Black', 'White', 'Blue', 'Red', 'Green'],
+            'tags': ['waterproof', 'lightweight', 'durable', 'breathable', 'eco-friendly'],
+            'cities': [
+                {'name': 'Seattle', 'lat': 47.6062, 'lng': -122.3321},
+                {'name': 'Denver', 'lat': 39.7392, 'lng': -104.9903}
+            ]
         }
 
         with patch('builtins.open', mock_open()):

@@ -22,11 +22,11 @@ services:
       --api-key=${TYPESENSE_API_KEY:-xyz123_demo_key_change_in_production}
       --enable-cors
     healthcheck:
-      test: ["CMD", "sh", "-c", "curl -f http://localhost:8108/health || exit 1"]
+      test: ["CMD", "wget", "--no-verbose", "--tries=1", "--spider", "http://localhost:8108/health"]
       interval: 5s
       timeout: 3s
-      retries: 10
-      start_period: 30s
+      retries: 12
+      start_period: 40s
     networks:
       - typesense-network
 

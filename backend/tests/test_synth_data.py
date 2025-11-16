@@ -128,9 +128,10 @@ class TestProductGeneration:
         product = generate_product(42)
 
         lat, lng = product['location']
-        # Should be near Seattle with some variance
-        assert 46.0 < lat < 49.0  # Reasonable latitude range
-        assert -123.5 < lng < -121.0  # Reasonable longitude range
+        # Should be valid coordinates anywhere in the US
+        # (covers Seattle, Denver, Portland, Austin from test config)
+        assert 25.0 < lat < 50.0  # Continental US latitude range
+        assert -125.0 < lng < -90.0  # Continental US longitude range
 
 
 class TestBrandGeneration:

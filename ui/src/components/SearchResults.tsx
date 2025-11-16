@@ -79,7 +79,6 @@ export default function SearchResults() {
         <Stats
           classNames={{
             root: 'stats-root',
-            text: 'stats-text',
           }}
         />
 
@@ -128,7 +127,7 @@ export default function SearchResults() {
       </div>
 
       <style jsx>{`
-        :global(.stats-text) {
+        :global(.stats-root) {
           font-size: 0.95rem;
           color: #666;
         }

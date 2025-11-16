@@ -45,7 +45,8 @@ describe('GeoControls', () => {
     render(<GeoControls {...defaultProps} enabled={true} />);
     expect(screen.getByDisplayValue('47.6062')).toBeInTheDocument();
     expect(screen.getByDisplayValue('-122.3321')).toBeInTheDocument();
-    expect(screen.getByText(/50 km/i)).toBeInTheDocument();
+    // Check for radius in the label (more specific)
+    expect(screen.getByText(/Radius:.*50 km/)).toBeInTheDocument();
   });
 
   it('calls onLatChange when latitude input changes', () => {
@@ -84,6 +85,19 @@ describe('GeoControls', () => {
 
   it('displays info message when enabled', () => {
     render(<GeoControls {...defaultProps} enabled={true} />);
-    expect(screen.getByText(/Searching within 50 km/i)).toBeInTheDocument();
+    // Use more specific query for the info message
+    expect(screen.getByText(/Searching within 50 km of/i)).toBeInTheDocument();
+  });
+
+  it('handles city preset selection', () => {
+    render(<GeoControls {...defaultProps} enabled={true} />);
+    const dropdown = screen.getByRole('combobox');
+
+    // Select Seattle (index 0)
+    fireEvent.change(dropdown, { target: { value: '0' } });
+
+    // Should call onLatChange and onLngChange with Seattle coordinates
+    expect(defaultProps.onLatChange).toHaveBeenCalled();
+    expect(defaultProps.onLngChange).toHaveBeenCalled();
   });
 });

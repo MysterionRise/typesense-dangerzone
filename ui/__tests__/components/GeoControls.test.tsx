@@ -45,8 +45,11 @@ describe('GeoControls', () => {
     render(<GeoControls {...defaultProps} enabled={true} />);
     expect(screen.getByDisplayValue('47.6062')).toBeInTheDocument();
     expect(screen.getByDisplayValue('-122.3321')).toBeInTheDocument();
-    // Check for radius in the label (more specific)
-    expect(screen.getByText(/Radius:.*50 km/)).toBeInTheDocument();
+    // Check for radius - the label and value are in separate elements
+    expect(screen.getByText('Radius:', { exact: false })).toBeInTheDocument();
+    // Verify the radius value is displayed (will appear in multiple places)
+    const radiusTexts = screen.getAllByText(/50 km/i);
+    expect(radiusTexts.length).toBeGreaterThan(0);
   });
 
   it('calls onLatChange when latitude input changes', () => {

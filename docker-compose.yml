@@ -22,7 +22,7 @@ services:
       --api-key=${TYPESENSE_API_KEY:-xyz123_demo_key_change_in_production}
       --enable-cors
     healthcheck:
-      test: ["CMD", "nc", "-z", "127.0.0.1", "8108"]
+      test: ["CMD", "bash", "-c", "exec 3<>/dev/tcp/localhost/8108 && printf 'GET /health HTTP/1.1\\r\\nConnection: close\\r\\n\\r\\n' >&3 && head -n1 <&3 | grep '200' && exec 3>&-"]
       interval: 10s
       timeout: 5s
       retries: 20

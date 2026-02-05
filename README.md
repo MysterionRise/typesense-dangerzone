@@ -1,21 +1,25 @@
 # Typesense Dangerzone
 
-[![CI](https://github.com/konstantinp/typesense-dangerzone/actions/workflows/ci.yml/badge.svg)](https://github.com/konstantinp/typesense-dangerzone/actions/workflows/ci.yml)
+[![CI](https://github.com/MysterionRise/typesense-dangerzone/actions/workflows/ci.yml/badge.svg)](https://github.com/MysterionRise/typesense-dangerzone/actions/workflows/ci.yml)
 [![Python 3.10+](https://img.shields.io/badge/python-3.10+-blue.svg)](https://www.python.org/downloads/)
+[![Coverage 90%+](https://img.shields.io/badge/coverage-90%25+-brightgreen.svg)](https://github.com/MysterionRise/typesense-dangerzone)
 [![Code style: ruff](https://img.shields.io/badge/code%20style-ruff-000000.svg)](https://github.com/astral-sh/ruff)
 [![Type checked: mypy](https://img.shields.io/badge/type%20checked-mypy-blue.svg)](https://mypy-lang.org/)
 [![License: MIT](https://img.shields.io/badge/License-MIT-yellow.svg)](https://opensource.org/licenses/MIT)
 
-Enterprise-grade Python examples for [Typesense](https://typesense.org/) - an open-source, typo-tolerant search engine alternative to Algolia and Elasticsearch.
+**Enterprise-grade Python SDK for [Typesense](https://typesense.org/) search engine** — featuring type-safe configuration, structured logging, comprehensive testing, and production-ready CI/CD pipeline.
+
+Typesense is an open-source, typo-tolerant search engine and a modern alternative to Algolia and Elasticsearch.
 
 ## Features
 
-- Type-safe configuration with Pydantic Settings
-- Secure credential management via environment variables
-- Structured logging with structlog
-- Comprehensive error handling
-- Full type hints with mypy strict mode
-- 80%+ test coverage
+- **Type-safe configuration** with Pydantic Settings and SecretStr
+- **Structured logging** with structlog (JSON-ready for production)
+- **Comprehensive error handling** with custom exception hierarchy
+- **Full type hints** with mypy strict mode
+- **90%+ test coverage** with pytest (unit + integration tests)
+- **Production-ready CI/CD** with GitHub Actions (lint, security scan, matrix testing)
+- **Secure credential management** via environment variables
 
 ## Quick Start
 
@@ -29,7 +33,7 @@ Enterprise-grade Python examples for [Typesense](https://typesense.org/) - an op
 1. **Clone the repository:**
 
    ```bash
-   git clone https://github.com/konstantinp/typesense-dangerzone.git
+   git clone https://github.com/MysterionRise/typesense-dangerzone.git
    cd typesense-dangerzone
    ```
 

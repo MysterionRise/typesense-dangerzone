@@ -73,21 +73,6 @@ jobs:
       matrix:
         python-version: ["3.10", "3.11", "3.12"]
 
-    services:
-      typesense:
-        image: typesense/typesense:27.1
-        ports:
-          - 8108:8108
-        env:
-          TYPESENSE_API_KEY: ${{ env.TYPESENSE_API_KEY }}
-          TYPESENSE_DATA_DIR: /data
-          TYPESENSE_ENABLE_CORS: "true"
-        options: >-
-          --health-cmd "curl -f http://localhost:8108/health || exit 1"
-          --health-interval 10s
-          --health-timeout 5s
-          --health-retries 5
-
     steps:
       - uses: actions/checkout@v4
 
@@ -101,16 +86,26 @@ jobs:
           python -m pip install --upgrade pip
           pip install -e ".[dev]"
 
+      - name: Start Typesense
+        run: |
+          docker run -d --name typesense \
+            -p 8108:8108 \
+            typesense/typesense:27.1 \
+            --data-dir=/tmp --api-key=${{ env.TYPESENSE_API_KEY }} --enable-cors
+
       - name: Wait for Typesense
         run: |
           for i in {1..30}; do
             if curl -s http://localhost:8108/health | grep -q '"ok":true'; then
               echo "Typesense is ready"
-              break
+              exit 0
             fi
-            echo "Waiting for Typesense..."
+            echo "Waiting for Typesense... (attempt $i)"
             sleep 2
           done
+          echo "Typesense failed to start"
+          docker logs typesense
+          exit 1
 
       - name: Run unit tests
         run: pytest tests/unit -v --cov --cov-report=xml --cov-report=term-missing
@@ -129,6 +124,10 @@ jobs:
           files: ./coverage.xml
           fail_ci_if_error: false
           verbose: true
+
+      - name: Stop Typesense
+        if: always()
+        run: docker stop typesense || true
 
   all-checks-pass:
     name: All Checks Pass

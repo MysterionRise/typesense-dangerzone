@@ -32,7 +32,6 @@ MOVIES_SCHEMA: dict[str, Any] = {
         {"name": "imdbRating", "type": "string", "optional": True},
         {"name": "Plot", "type": "string", "optional": True},
     ],
-    "default_sorting_field": None,
 }
 
 

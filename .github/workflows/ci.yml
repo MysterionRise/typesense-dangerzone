@@ -115,7 +115,7 @@ jobs:
           TYPESENSE_API_KEY: ${{ env.TYPESENSE_API_KEY }}
           TYPESENSE_HOST: localhost
           TYPESENSE_PORT: "8108"
-        run: pytest tests/integration -v -m integration
+        run: pytest tests/integration -v -m integration --no-cov
 
       - name: Upload coverage to Codecov
         if: matrix.python-version == '3.11'
